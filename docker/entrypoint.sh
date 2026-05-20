@@ -46,7 +46,7 @@ graceful_shutdown() {
 trap 'graceful_shutdown' SIGTERM SIGINT SIGQUIT
 
 # ---------------------------------------------------------------------------
-# Utility: Wait for a TCP service to be ready
+# Utility: Wait for a TCP service (non-fatal by default)
 # ---------------------------------------------------------------------------
 wait_for_service() {
     local HOST="$1"
@@ -54,14 +54,21 @@ wait_for_service() {
     local SERVICE_NAME="${3:-$HOST:$PORT}"
     local MAX_RETRIES="${4:-30}"
     local WAIT_SECONDS="${5:-2}"
+    local REQUIRED="${6:-false}"   # Pass 'true' to abort on failure
 
     log_info "Waiting for $SERVICE_NAME ($HOST:$PORT)..."
     local ATTEMPT=0
     until nc -z "$HOST" "$PORT" 2>/dev/null; do
         ATTEMPT=$((ATTEMPT + 1))
         if [ "$ATTEMPT" -ge "$MAX_RETRIES" ]; then
-            log_error "Service $SERVICE_NAME not available after ${MAX_RETRIES} attempts. Aborting."
-            exit 1
+            if [ "$REQUIRED" = "true" ]; then
+                log_error "Service $SERVICE_NAME not available after ${MAX_RETRIES} attempts. Aborting."
+                exit 1
+            else
+                log_warn "Service $SERVICE_NAME not available after ${MAX_RETRIES} attempts."
+                log_warn "Continuing without $SERVICE_NAME (in-memory cache will be used as fallback)."
+                return 0   # Non-fatal: let the app start anyway
+            fi
         fi
         log_warn "  Attempt $ATTEMPT/$MAX_RETRIES - $SERVICE_NAME not ready. Retrying in ${WAIT_SECONDS}s..."
         sleep "$WAIT_SECONDS"
@@ -93,16 +100,25 @@ preflight_checks() {
 
 # ---------------------------------------------------------------------------
 # Wait for Redis if REDIS_URL is configured
+# Redis is OPTIONAL by default — the app falls back to in-memory LRU cache.
+# Set REDIS_REQUIRED=true in env to make it mandatory (e.g. Docker Compose).
 # ---------------------------------------------------------------------------
 wait_for_dependencies() {
     if [ -n "${REDIS_URL:-}" ]; then
         # Parse host and port from REDIS_URL (format: redis://host:port/db)
         local REDIS_HOST
         local REDIS_PORT
-        REDIS_HOST=$(echo "$REDIS_URL" | sed -E 's|redis://([^:]+):.*|\1|')
+        REDIS_HOST=$(echo "$REDIS_URL" | sed -E 's|redis://([^:@]+@)?([^:]+):.*|\2|')
         REDIS_PORT=$(echo "$REDIS_URL" | sed -E 's|redis://[^:]+:([0-9]+).*|\1|')
         REDIS_PORT="${REDIS_PORT:-6379}"
-        wait_for_service "$REDIS_HOST" "$REDIS_PORT" "Redis" 30 2
+
+        # REDIS_REQUIRED=true → fatal if unreachable (default in Docker Compose)
+        # REDIS_REQUIRED=false (default) → warn and continue (safe for PaaS/Render)
+        local REQUIRED="${REDIS_REQUIRED:-false}"
+
+        wait_for_service "$REDIS_HOST" "$REDIS_PORT" "Redis" 10 2 "$REQUIRED"
+    else
+        log_warn "REDIS_URL not set — skipping Redis. In-memory LRU cache will be used."
     fi
 }
 

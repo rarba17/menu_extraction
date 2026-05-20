@@ -23,6 +23,8 @@ services:
       PYTHONDEBUG: "1"
       # Use reload-compatible single-worker mode
       WEB_CONCURRENCY: "1"
+      # Redis is always available in Docker Compose, so make it required
+      REDIS_REQUIRED: "true"
     volumes:
       # Hot-reload: mount source code directly into the container
       - ./backend:/app/backend:rw
