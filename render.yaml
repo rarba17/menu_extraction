@@ -1,0 +1,86 @@
+# =============================================================================
+# render.yaml - Render Blueprint (Infrastructure as Code)
+# =============================================================================
+# Defines both backend and frontend as separate Render web services.
+# Deploy both at once via: Render Dashboard → New → Blueprint
+# Docs: https://render.com/docs/blueprint-spec
+# =============================================================================
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # Backend: FastAPI
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: menu-extraction-backend
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    dockerCommand: backend-prod          # Runs gunicorn + uvicorn workers
+
+    plan: free                           # Change to 'starter' for always-on
+    region: oregon                       # us-west-2
+
+    healthCheckPath: /health
+
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false                      # Set manually in Render dashboard (secret)
+      - key: APP_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: warning
+      - key: BACKEND_HOST
+        value: "0.0.0.0"
+      - key: BACKEND_PORT
+        value: "8000"
+      - key: WEB_CONCURRENCY
+        value: "2"
+      - key: MAX_WORKERS
+        value: "4"
+      - key: MAX_FILE_SIZE
+        value: "10485760"
+      - key: OUTPUT_DIR
+        value: /app/outputs
+      - key: REDIS_REQUIRED
+        value: "false"                   # No Redis on free tier - uses in-memory cache
+      # If you add a Redis instance on Render, set REDIS_URL here:
+      # - key: REDIS_URL
+      #   fromService:
+      #     name: menu-extraction-redis
+      #     type: redis
+      #     property: connectionString
+
+  # ---------------------------------------------------------------------------
+  # Frontend: Streamlit
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: menu-extraction-frontend
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    dockerCommand: frontend-prod         # Runs streamlit in production mode
+
+    plan: free
+    region: oregon
+
+    healthCheckPath: /_stcore/health
+
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: FRONTEND_PORT
+        value: "8501"
+      - key: LOG_LEVEL
+        value: warning
+      - key: STREAMLIT_SERVER_PORT
+        value: "8501"
+      - key: STREAMLIT_SERVER_ADDRESS
+        value: "0.0.0.0"
+      - key: STREAMLIT_SERVER_HEADLESS
+        value: "true"
+      - key: STREAMLIT_BROWSER_GATHER_USAGE_STATS
+        value: "false"
+      # IMPORTANT: Update this to your actual backend Render URL after deploying
+      - key: BACKEND_URL
+        value: https://menu-extraction-1.onrender.com
