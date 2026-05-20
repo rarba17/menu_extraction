@@ -33,7 +33,9 @@ RUN groupadd --gid 1001 appgroup && \
 WORKDIR /app
 COPY --chown=appuser:appgroup frontend/ ./frontend/
 COPY --chown=appuser:appgroup docker/entrypoint.sh ./entrypoint.sh
-RUN chmod +x ./entrypoint.sh
+RUN chmod +x ./entrypoint.sh && \
+    mkdir -p /app/outputs /app/logs && \
+    chown -R appuser:appgroup /app/outputs /app/logs
 
 USER appuser
 
