@@ -12,9 +12,12 @@ st.set_page_config(
     layout="wide"
 )
 
-# API endpoint: read from env var so it works both in Docker (http://backend:8000)
-# and local dev (http://localhost:8000) without code changes
-API_URL = os.environ.get("BACKEND_URL", "http://localhost:8000")
+# API endpoint: works on Streamlit Cloud (st.secrets), Render/Docker (env var), and local dev
+try:
+    API_URL = st.secrets.get("BACKEND_URL", os.environ.get("BACKEND_URL", "http://localhost:8000"))
+except Exception:
+    API_URL = os.environ.get("BACKEND_URL", "http://localhost:8000")
+
 
 st.title("🍽️ AI-Powered Menu Extraction System")
 st.markdown("Upload a restaurant menu (image or PDF) to extract structured data automatically")
