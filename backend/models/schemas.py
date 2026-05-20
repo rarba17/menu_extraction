@@ -1,3 +1,4 @@
+# backend/models/schemas.py
 from pydantic import BaseModel, Field
 from typing import List, Optional
 
@@ -19,11 +20,9 @@ class MenuSchema(BaseModel):
     menu_language: Optional[str] = Field(None, description="Detected language of the original menu")
     menu_items: List[MenuItem] = Field(default_factory=list, description="List of menu items")
 
-
 class ExtractionResponse(BaseModel):
     success: bool
     data: Optional[MenuSchema] = None
     error: Optional[str] = None
     processing_time: Optional[float] = None
-
-    
+    cached: bool = False  # Add this field

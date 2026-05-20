@@ -1,0 +1,81 @@
+# =============================================================================
+# docker-compose.override.yml - Development Overrides
+# =============================================================================
+# Automatically merged by Docker Compose when running:
+#   docker-compose up
+# This file overrides base settings for local development.
+# =============================================================================
+
+version: "3.9"
+
+services:
+
+  # ---------------------------------------------------------------------------
+  # Backend: Development overrides
+  # ---------------------------------------------------------------------------
+  backend:
+    build:
+      target: development          # Use the 'development' Dockerfile stage
+    image: menu-extraction-backend:dev
+    environment:
+      APP_ENV: development
+      LOG_LEVEL: debug
+      PYTHONDEBUG: "1"
+      # Use reload-compatible single-worker mode
+      WEB_CONCURRENCY: "1"
+    volumes:
+      # Hot-reload: mount source code directly into the container
+      - ./backend:/app/backend:rw
+      - ./frontend:/app/frontend:rw
+      # Mount .env for local development
+      - ./.env:/app/.env:ro
+      # Persist outputs locally for easy inspection
+      - ./outputs:/app/outputs:rw
+    command: ["backend-dev"]       # Runs uvicorn with --reload flag
+    # No resource limits in development for flexibility
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: "2G"
+    ports:
+      - "8000:8000"
+      # Also expose debugpy port if needed
+      - "5678:5678"
+
+  # ---------------------------------------------------------------------------
+  # Frontend: Development overrides
+  # ---------------------------------------------------------------------------
+  frontend:
+    build:
+      target: development
+    image: menu-extraction-frontend:dev
+    environment:
+      APP_ENV: development
+      STREAMLIT_SERVER_RUN_ON_SAVE: "true"    # Hot reload on file save
+      STREAMLIT_LOGGER_LEVEL: debug
+    volumes:
+      # Hot-reload: mount frontend source code
+      - ./frontend:/app/frontend:rw
+      - ./.env:/app/.env:ro
+    command: ["frontend-dev"]
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "1G"
+
+  # ---------------------------------------------------------------------------
+  # Redis: Expose port locally in development for direct inspection
+  # ---------------------------------------------------------------------------
+  redis:
+    ports:
+      - "127.0.0.1:6380:6379"    # Use 6380 on host to avoid conflicts with other Redis instances
+    environment:
+      REDIS_LOG_LEVEL: verbose    # More verbose logging in dev
+    command: >
+      redis-server
+      --maxmemory 128mb
+      --maxmemory-policy allkeys-lru
+      --loglevel verbose
+      --save ""

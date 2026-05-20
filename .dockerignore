@@ -1,0 +1,91 @@
+# =============================================================================
+# .dockerignore - Files excluded from Docker build context
+# =============================================================================
+# Smaller context = faster builds. Only copy what's needed.
+# =============================================================================
+
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# Python artifacts
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Virtual environments
+.venv/
+venv/
+env/
+.env.local
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Test and coverage artifacts
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+.tox/
+*.egg-info/
+
+# Build artifacts
+dist/
+build/
+*.egg
+
+# Docker files (don't nest docker builds)
+docker-compose*.yml
+Dockerfile*
+.dockerignore
+
+# Documentation (not needed at runtime)
+*.md
+docs/
+README*
+CHANGELOG*
+LICENSE*
+
+# Local data and outputs
+outputs/
+*.tmp
+*.temp
+/tmp/
+
+# Log files
+*.log
+logs/
+
+# Jupyter notebooks
+*.ipynb
+.ipynb_checkpoints/
+
+# Node / JS artifacts (if any)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+Jenkinsfile
+
+# Secrets (should NEVER be in the build context)
+*.pem
+*.key
+*.crt
+*.p12
+secrets/
