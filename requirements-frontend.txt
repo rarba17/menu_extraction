@@ -1,0 +1,7 @@
+# requirements-frontend.txt
+# Minimal dependencies for the Streamlit frontend only.
+# The frontend talks to the backend API — it does NOT need AI/ML libraries.
+streamlit==1.35.0
+requests==2.31.0
+Pillow==10.1.0
+python-dotenv==1.0.0

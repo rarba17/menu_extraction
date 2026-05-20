@@ -206,10 +206,7 @@ start_frontend_prod() {
         --server.headless true \
         --server.runOnSave false \
         --browser.gatherUsageStats false \
-        --logger.level "${LOG_LEVEL:-warning}" \
-        &
-    PID=$!
-    wait "$PID"
+        --logger.level "${LOG_LEVEL:-warning}"
 }
 
 # ---------------------------------------------------------------------------

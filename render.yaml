@@ -57,9 +57,9 @@ services:
   - type: web
     name: menu-extraction-frontend
     runtime: docker
-    dockerfilePath: ./Dockerfile
+    dockerfilePath: ./Dockerfile.frontend    # Lightweight image — no ML libs (~200MB)
     dockerContext: .
-    dockerCommand: frontend-prod         # Runs streamlit in production mode
+    # CMD is already set to frontend-prod in Dockerfile.frontend
 
     plan: free
     region: oregon
@@ -81,6 +81,6 @@ services:
         value: "true"
       - key: STREAMLIT_BROWSER_GATHER_USAGE_STATS
         value: "false"
-      # IMPORTANT: Update this to your actual backend Render URL after deploying
+      # IMPORTANT: Update this to your actual backend Render URL
       - key: BACKEND_URL
         value: https://menu-extraction-1.onrender.com

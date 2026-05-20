@@ -1,0 +1,56 @@
+# =============================================================================
+# Dockerfile.frontend — Lightweight Streamlit-only image
+# =============================================================================
+# Used for deploying the frontend on Render / any PaaS.
+# Does NOT include ML libraries (EasyOCR, OpenCV, PyTorch, etc.).
+# Image size: ~200MB vs ~3GB for the full image.
+# =============================================================================
+
+FROM python:3.11-slim AS frontend
+
+# ---------------------------------------------------------------------------
+# OS dependencies (only what Streamlit needs)
+# ---------------------------------------------------------------------------
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# ---------------------------------------------------------------------------
+# Python dependencies
+# ---------------------------------------------------------------------------
+COPY requirements-frontend.txt /tmp/requirements-frontend.txt
+RUN pip install --no-cache-dir -r /tmp/requirements-frontend.txt
+
+# ---------------------------------------------------------------------------
+# Non-root user
+# ---------------------------------------------------------------------------
+RUN groupadd --gid 1001 appgroup && \
+    useradd --uid 1001 --gid appgroup --no-create-home --shell /bin/bash appuser
+
+# ---------------------------------------------------------------------------
+# Application code
+# ---------------------------------------------------------------------------
+WORKDIR /app
+COPY --chown=appuser:appgroup frontend/ ./frontend/
+COPY --chown=appuser:appgroup docker/entrypoint.sh ./entrypoint.sh
+RUN chmod +x ./entrypoint.sh
+
+USER appuser
+
+# ---------------------------------------------------------------------------
+# Runtime configuration
+# ---------------------------------------------------------------------------
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    STREAMLIT_SERVER_HEADLESS=true \
+    STREAMLIT_BROWSER_GATHER_USAGE_STATS=false \
+    FRONTEND_PORT=8501 \
+    APP_ENV=production
+
+EXPOSE 8501
+
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=20s \
+    CMD curl -f http://localhost:${FRONTEND_PORT:-8501}/_stcore/health || exit 1
+
+ENTRYPOINT ["./entrypoint.sh"]
+CMD ["frontend-prod"]
