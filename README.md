@@ -96,8 +96,8 @@ The system is designed for:
 │  └────────────────┘  │   └─────────────────────────┘
 │                      │
 │  ┌────────────────┐  │
-│  │ GeminiService  │  │──────────────► Google Gemini API
-│  │ PDFProcessor   │  │                (gemini-2.5-flash)
+│  │ OpenAIService  │  │──────────────► OpenAI API
+│  │ PDFProcessor   │  │                (openai-gpt-4o-mini)
 │  │ ImagePipeline  │  │
 │  │ CacheManager   │  │
 │  │MultilingualHdl │  │
