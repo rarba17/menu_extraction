@@ -224,8 +224,16 @@ class OpenAIService:
         """
         Extract the JSON arguments from a function-call response.
         Falls back to parsing the plain message content if no tool call exists.
+        Raises a clear error if the response was truncated by the token limit.
         """
         choice = response.choices[0]
+
+        # Guard: detect truncated output before attempting JSON parse
+        if choice.finish_reason == "length":
+            raise Exception(
+                "OpenAI response was truncated (hit max_tokens limit). "
+                "Increase OPENAI_MAX_TOKENS in your .env file or environment."
+            )
 
         # Path 1: function / tool call
         if choice.message.tool_calls:
