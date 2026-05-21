@@ -9,7 +9,7 @@ import os
 import shutil
 from typing import Optional, List, Dict, Any
 from backend.models.schemas import ExtractionResponse, MenuSchema
-from backend.services.gemini_service import GeminiService
+from backend.services.openai_service import OpenAIService
 from backend.services.pdf_processor import PDFProcessor
 from backend.services.performance.image_pipeline import ImagePipeline
 from backend.services.performance.cache_manager import MenuCacheManager
@@ -34,7 +34,7 @@ app.add_middleware(
 )
 
 # Initialize services
-gemini_service = GeminiService()
+ai_service = OpenAIService()
 pdf_processor = PDFProcessor()
 image_pipeline = ImagePipeline()
 cache_manager = MenuCacheManager()
@@ -152,7 +152,7 @@ async def extract_menu(
                 extracted_text = pdf_processor.extract_text_from_pdf(temp_file_path)
 
                 if extracted_text and len(extracted_text.strip()) > 100:
-                    menu_data = gemini_service.extract_menu_from_text(extracted_text)
+                    menu_data = ai_service.extract_menu_from_text(extracted_text)
                 else:
                     # Fallback to image extraction
                     images = pdf_processor.extract_images_from_pdf(temp_file_path)
