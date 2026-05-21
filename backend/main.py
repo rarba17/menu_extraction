@@ -159,7 +159,7 @@ async def extract_menu(
                     if images:
                         # Optimize first page
                         optimized_first_page = image_pipeline.smart_resize(images[0], target_size_mb=0.5)
-                        menu_data = await multilingual_handler.extract_multilingual_menu(optimized_first_page)
+                        menu_data = ai_service.extract_menu_from_image(optimized_first_page)
                     else:
                         raise HTTPException(
                             status_code=400,
@@ -177,8 +177,8 @@ async def extract_menu(
                 # Smart resize
                 optimized_path = image_pipeline.smart_resize(oriented_path, target_size_mb=0.5)
 
-                # Extract with multilingual support
-                menu_data = await multilingual_handler.extract_multilingual_menu(optimized_path)
+                # Extract with OpenAI Vision (function calling guarantees valid JSON)
+                menu_data = ai_service.extract_menu_from_image(optimized_path)
 
             except Exception as img_err:
                 raise HTTPException(status_code=400, detail=f"Image processing failed: {str(img_err)}")
