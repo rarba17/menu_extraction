@@ -5,7 +5,7 @@
 ![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.104-green?logo=fastapi)
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.29-red?logo=streamlit)
-![Google Gemini](https://img.shields.io/badge/Google-Gemini_2.5_Flash-orange?logo=google)
+![OpenAI GPT-4o mini](https://img.shields.io/badge/OpenAI-GPT--4o--mini-412991?logo=openai)
 ![Docker](https://img.shields.io/badge/Docker-Containerized-blue?logo=docker)
 ![Redis](https://img.shields.io/badge/Redis-7.2-red?logo=redis)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
